@@ -75,7 +75,7 @@ with open("dim_city",'w') as wd:
       
       
 
-            
+post_data=[]            
 
 response_posts = requests.get(url_post)
 print(response_posts .status_code)
@@ -85,11 +85,57 @@ if response_posts .status_code==200:
                 for post in posts:
                     try:
                         if  post['userId'] and post['id'] and post['title']:
-                               pass
+                              post_data.append(
+                                    {   'userId':post.get('userId'),
+                                        'post_id':post.get('id'),
+                                        'title':post.get('title'),
+                                        'body':post.get('body'),
+                                        'word_count':len(post.get('body').split(" "))      
+                                    }
+                              )
                     except Exception as ES:
                            logging.info(f"{ES}")
                            exit
-                
+print(post_data)
+fact_post=[]
+
+
+def get_userdata(userid):
+      for user in user_table:
+            
+            if userid ==user['user_id']:
+                return user
+            # break
+            
+user_list=[]
+for post in post_data:
+    userid=post.get('userId')
+    user=get_userdata(userid)
+    
+    city=user.get('city')
+    fact_post.append({
+                  'userid':post.get('userId'),
+                  'post_id':post.get('post_id'),
+                  'title':post.get('title'),
+                  'body':post.get('body'),
+                  'city':city,
+                  'region':[s for s in city_table if city == s['city']][0].get('region'),
+                  'word_count':len(post.get('body').split(" ")) 
+                  }
+            )
+    
+with open("fact_posts.csv",'w') as df:
+    writer=csv.DictWriter(df,fieldnames=['post_id','userid','title','body','city','region','word_count'])
+    writer.writeheader() 
+    writer.writerows(fact_post)
+      
+    
+print(fact_post)
+
+            
+
+    
+      
                            
                            
                     
