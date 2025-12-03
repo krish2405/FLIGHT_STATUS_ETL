@@ -8,10 +8,15 @@ logging.basicConfig(filename="etl_error.log", level=logging.INFO)
 url_user = "https://jsonplaceholder.typicode.com/users"
 url_post="https://jsonplaceholder.typicode.com/posts"
 
+with open("city_regions.json",'r') as jr:
+        city_regions=json.load(jr)
+        print(city_regions)
+
+
 response_user = requests.get(url_user)
 print(response_user.status_code)
 user_table=[]
-post_table=[]
+city_table=[]
 if response_user.status_code==200:
         users =response_user.json()
         if len(users):
@@ -46,6 +51,32 @@ with open("din_user.csv",'w') as du:
     # print(user_table) 
     writer.writerows(user_table)
 
+people_count={}
+with open("din_user.csv",'r') as rf:
+      reader=csv.reader(rf)
+      next(reader)
+      for y in reader:
+            people_count[y[3]]=people_count.get(y[3],0)+1
+print(people_count)
+
+
+for city,people in people_count.items():
+      if people !=0:
+        city_table.append({
+            'city':city,
+            'region':city_regions.get(city,'Unknown'),
+            'number_of_users_in_this_city':people
+        })
+
+with open("dim_city",'w') as wd:
+    writer=csv.DictWriter(wd,fieldnames=['city','region','number_of_users_in_this_city'])
+    writer.writeheader() 
+    writer.writerows(city_table)
+      
+      
+
+            
+
 response_posts = requests.get(url_post)
 print(response_posts .status_code)
 if response_posts .status_code==200:
@@ -55,7 +86,6 @@ if response_posts .status_code==200:
                     try:
                         if  post['userId'] and post['id'] and post['title']:
                                pass
-                    
                     except Exception as ES:
                            logging.info(f"{ES}")
                            exit
@@ -64,11 +94,8 @@ if response_posts .status_code==200:
                            
                     
         
-        print(posts)
+#         print(posts)
 
-with open("city_regions.json",'r') as jr:
-        city_regions=json.load(jr)
-        print(city_regions)
 
 
  
